@@ -43,7 +43,7 @@ function App() {
           method: "POST",
           body: JSON.stringify({
             "action": "get_ids",
-            "params": {"offset": 0}
+            "params": {"offset": 0, "limit": 736}
           })
         })
         .then(res => {
