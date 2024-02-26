@@ -14,7 +14,7 @@ function App() {
   if (month < 10) month = '0' + month
   let year = currentDate.getFullYear()
   
-  const BASE_URL = 'http://api.valantis.store:40000'
+  const BASE_URL = 'https://api.valantis.store:41000'
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "*",
