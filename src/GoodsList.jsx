@@ -1,7 +1,8 @@
-const GoodsList = ({currentGoods}) => {
+const GoodsList = ({goods, currentPage, itemsPerPage}) => {
     return (
         <div className='results__items'>
-            {currentGoods.map(el => <div className='item' key={el.id}>
+            {goods.slice(currentPage * itemsPerPage - itemsPerPage, currentPage * itemsPerPage)
+            .map(el => <div className='item' key={el.id}>
                     <div className='item__param name'>{el.product}</div>
                     <div className='item__param brand'>{el.brand}</div>
                     <div className='item__bottom'>

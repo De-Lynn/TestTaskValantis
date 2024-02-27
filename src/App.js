@@ -30,8 +30,7 @@ function App() {
   const [pagesCount, setPagesCount] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsOnPage] = useState(50)
-  const currentGoods = goods.slice(currentPage * itemsPerPage - itemsPerPage, currentPage * itemsPerPage)
-
+  
   // --------- FETCHING IDS ---------
   useEffect(() => {
     const fetchIds = async () => {
@@ -43,12 +42,12 @@ function App() {
           method: "POST",
           body: JSON.stringify({
             "action": "get_ids",
-            "params": {"offset": 0, "limit": 736}
+            "params": {"offset": 0, "limit": 625}
           })
         })
         .then(res => {
           if (!res.ok) {
-            throw new Error(`${res.status}, ${res.statusText}`)
+            throw new Error(`${res.status}`)
           }
           return res.json()
         })
@@ -57,7 +56,9 @@ function App() {
         setIds(ids)
       } catch (error) {
         console.log(error)
-
+        if (error.message === '500') {
+          fetchIds()
+        }
         setIsLoading(false)
       }
     }
@@ -94,22 +95,22 @@ function App() {
         }, {map: {}, goods: []}).goods
         setGoods(goods)
 
-        setPagesCount(Math.ceil(goods.length / 50))
+        const pagesCount = Math.ceil(goods.length / 50)
+        setPagesCount(pagesCount)
+        if (pagesCount === 1) setIsShowingMore(true)
+
         setCurrentPage(1)
       } catch (error) {
-        console.log(error.name)
+        console.log(error)
       } finally {
         setIsLoading(false)
       }
     }
-    fetchGoods()
+    if (ids.length) fetchGoods()
   }, [ids])
 
   // --------- FILTER FORM ---------
-  const [filterReqBody, setFilterReqBody] = useState({
-    "action": "filter",
-    "params": {}
-  })
+  const [filterReqBody, setFilterReqBody] = useState({})
 
   const onFormSubmit = (e) => {
     e.preventDefault()
@@ -138,7 +139,7 @@ function App() {
         })
         .then(res => {
           if (!res.ok) {
-            throw new Error(`${res.status}, ${res.statusText}`)
+            throw new Error(`${res.status}`)
           }
           return res.json()
         })
@@ -147,11 +148,13 @@ function App() {
         setIds(ids)
       } catch (error) {
         console.log(error)
-
+        if (error.message === '500') {
+          fetchIds()
+        }
         setIsLoading(false)
       }
     }
-    fetchIds()
+    if (Object.keys(filterReqBody).length) fetchIds()
   }, [filterReqBody])
 
 
@@ -197,22 +200,17 @@ function App() {
             {currentPage !== 1 && <ControlButton onClick={onPrevClick} text={'Prev'}/>}
             {
               [...Array(pagesCount)].map((item, index) => {
-                if ((currentPage - 4 <= 1) && (index + 1 < 7 || index + 1 > pagesCount - 1))
-                  return <PageNumber currentPage={currentPage} index={index} onPageClick={onPageClick}/>
-                if ((currentPage - 4 <= 1) && (index + 1 === 7)) 
-                  return <span className='pages__number'>...</span>
 
-                if ((currentPage < pagesCount - 4) && (index + 1 >= currentPage - 2 && index + 1 <= currentPage + 2))
+                // show page number 
+                if ((index + 1) === 1 || (index + 1) === pagesCount)
                   return <PageNumber currentPage={currentPage} index={index} onPageClick={onPageClick}/>
-                if ((currentPage < pagesCount - 4) && (index + 1 === pagesCount || index + 1 === 1))
+                if ((currentPage - 2 <= index + 1) && (index + 1 <= currentPage + 2))
                   return <PageNumber currentPage={currentPage} index={index} onPageClick={onPageClick}/>
-                if ((currentPage > 5) && (currentPage < pagesCount - 4) && (index + 1 === currentPage + 3 || index + 1 === currentPage - 3))
-                  return <span className='pages__number'>...</span>
 
-                if ((currentPage + 4 >= pagesCount) && (index + 1 > 10 || index + 1 === 1))
-                  return <PageNumber currentPage={currentPage} index={index} onPageClick={onPageClick}/>
-                if ((currentPage + 4 >= pagesCount) && (index + 1 === 10)) 
+                // show ...
+                if ((1 < index + 1) && (index + 1 === currentPage - 3) || (index + 1 < pagesCount) && (index + 1 === currentPage + 3)) 
                   return <span className='pages__number'>...</span>
+                  
               })
             }
             {currentPage !== pagesCount && <ControlButton onClick={onNextClick} text={'Next'}/>}
@@ -220,7 +218,7 @@ function App() {
         }
 
         {/* Results */}
-        <GoodsList currentGoods={currentGoods}/>
+        <GoodsList goods={goods} currentPage={currentPage} itemsPerPage={itemsPerPage}/>
         
         <button className='results__button button__up'  onClick={onUpClick}>UP</button>
       </div>
